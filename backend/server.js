@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -20,9 +22,10 @@ app.use(express.json());
    MONGODB CONNECTION
 ===================== */
 mongoose
-  .connect("mongodb://127.0.0.1:27017/habitTracker")
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected successfully"))
   .catch((err) => console.error("MongoDB connection error:", err));
+
 
 /* =====================
    AUTH MIDDLEWARE
