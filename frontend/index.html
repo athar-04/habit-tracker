@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Habit Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <h1>Habit Tracker</h1>
+
+  <!-- AUTH SECTION -->
+  <div class="login-section">
+    <input type="text" id="usernameInput" placeholder="Username" />
+    <input type="password" id="passwordInput" placeholder="Password" />
+
+    <button id="loginBtn">Login</button>
+    <button id="signupBtn">Signup</button>
+    <button id="logoutBtn" style="display:none;">Logout</button>
+  </div>
+
+  <!-- HABIT SECTION -->
+  <div class="habit-section">
+    <input type="text" id="habitInput" placeholder="Enter a habit" />
+    <button id="addHabitBtn">Add Habit</button>
+  </div>
+
+  <ul id="habitList"></ul>
+
+  <script src="script.js"></script>
+</body>
+</html>
