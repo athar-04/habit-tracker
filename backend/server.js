@@ -10,12 +10,15 @@ const Habit = require("./models/Habit");
 const User = require("./models/User");
 
 const app = express();
-const JWT_SECRET = "supersecretkey"; // later move to .env
+const JWT_SECRET = process.env.JWT_SECRET;
 
 /* =====================
    MIDDLEWARE
 ===================== */
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  credentials: true
+}));
 app.use(express.json());
 
 /* =====================
@@ -25,7 +28,6 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected successfully"))
   .catch((err) => console.error("MongoDB connection error:", err));
-
 
 /* =====================
    AUTH MIDDLEWARE
@@ -47,19 +49,15 @@ function authMiddleware(req, res, next) {
 }
 
 /* =====================
-   TEST ROUTE
+   HEALTH / WAKE ROUTE
 ===================== */
 app.get("/", (req, res) => {
-  res.send("Habit Tracker Backend is running");
+  res.status(200).send("Habit Tracker Backend is running 🚀");
 });
 
 /* =====================
    AUTH ROUTES
 ===================== */
-
-/**
- * Signup
- */
 app.post("/signup", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -71,22 +69,15 @@ app.post("/signup", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = new User({
-      username,
-      password: hashedPassword
-    });
-
+    const user = new User({ username, password: hashedPassword });
     await user.save();
-    res.json({ message: "User created successfully" });
 
-  } catch (err) {
+    res.json({ message: "User created successfully" });
+  } catch {
     res.status(500).json({ error: "Signup failed" });
   }
 });
 
-/**
- * Login
- */
 app.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -108,81 +99,51 @@ app.post("/login", async (req, res) => {
     );
 
     res.json({ token });
-
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Login failed" });
   }
 });
 
 /* =====================
-   HABIT APIs (PROTECTED)
+   HABIT ROUTES
 ===================== */
-
-/**
- * Get habits for logged-in user
- */
 app.get("/habits", authMiddleware, async (req, res) => {
-  try {
-    const habits = await Habit.find({ userId: req.user.username });
-    res.json(habits);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch habits" });
-  }
+  const habits = await Habit.find({ userId: req.user.username });
+  res.json(habits);
 });
 
-/**
- * Add new habit
- */
 app.post("/habits", authMiddleware, async (req, res) => {
-  try {
-    const habit = new Habit({
-      userId: req.user.username,
-      name: req.body.name,
-      done: false,
-      streak: 0,
-      lastChecked: null
-    });
+  const habit = new Habit({
+    userId: req.user.username,
+    name: req.body.name,
+    done: false,
+    streak: 0,
+    lastChecked: null
+  });
 
-    await habit.save();
-    res.json(habit);
-  } catch (err) {
-    res.status(400).json({ error: "Failed to add habit" });
-  }
+  await habit.save();
+  res.json(habit);
 });
 
-/**
- * Update habit
- */
 app.put("/habits/:id", authMiddleware, async (req, res) => {
-  try {
-    const updatedHabit = await Habit.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-    res.json(updatedHabit);
-  } catch (err) {
-    res.status(400).json({ error: "Failed to update habit" });
-  }
+  const updatedHabit = await Habit.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  );
+  res.json(updatedHabit);
 });
 
-/**
- * Delete habit
- */
 app.delete("/habits/:id", authMiddleware, async (req, res) => {
-  try {
-    await Habit.findByIdAndDelete(req.params.id);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(400).json({ error: "Failed to delete habit" });
-  }
+  await Habit.findByIdAndDelete(req.params.id);
+  res.json({ success: true });
 });
 
 /* =====================
    START SERVER
 ===================== */
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
